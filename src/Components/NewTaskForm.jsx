@@ -8,18 +8,27 @@ class NewTaskForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            modal: false
+            modal: false,
+            description: "",
+            deadline: "",
+            priority: 0,
+            status: 0,
         };
     }
 
     handleSubmit = (event) => {
-        this.props.handleSubmit(this.state);
+        if (this.state.description.length === 0 || this.state.deadline === 0) {
+            alert("信息填写不完整")
+        } else {
+            this.props.handleSubmit(this.state);
+        }
         event.preventDefault();
     }
 
     consumeInput = (props) => {
         return (
-            <Input label="截止日期" {...props} onChange={(event) => props.onChange(event.target.value)}/>
+            <Input onKeyPress={(event) => event.preventDefault()} label="截止日期" {...props}
+                   onChange={(event) => props.onChange(event.target.value)}/>
         );
     }
 
@@ -32,7 +41,8 @@ class NewTaskForm extends Component {
                         <div className="row">
                             <div className="form-group col-lg-12">
                                 <Input label={"待办事项标题"}
-                                       onChange={(event) => this.setState({discription: event.target.value})}/>
+                                       onChange={(event) => this.setState({description: event.target.value})}
+                                />
                             </div>
                         </div>
                         <div className="row">
@@ -43,9 +53,7 @@ class NewTaskForm extends Component {
                         </div>
                         <div className="row">
                             <div className="form-group col-lg-12">
-                                <label>Country:</label>
-                                <input type="text" value={this.country} onChange={this.handleChangeCountry}
-                                       className="form-control"/>
+                                {/*//Todo dropdown*/}
                             </div>
                         </div>
 

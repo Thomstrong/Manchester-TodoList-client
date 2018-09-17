@@ -3,6 +3,7 @@ import {Input} from "mdbreact"
 import NewTaskForm from "./Components/NewTaskForm";
 
 const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
+const statusList = ["待完成", "已完成", "已放弃"]
 const todoList = [
     {
         "id": "ef432037-5e41-4cca-8875-1441ec61cbe6",
@@ -10,7 +11,7 @@ const todoList = [
         "deadline": "2018-09-16T13:00:00",
         "restTime": "\u903e\u671f 2 \u5929 9 \u5c0f\u65f6 39 \u5206\u949f",
         "priority": 0,
-        "status": 0,
+        "status": 1,
         "url": "http://127.0.0.1:8005/api/todoList/ef432037-5e41-4cca-8875-1441ec61cbe6/"
     },
     {
@@ -19,7 +20,7 @@ const todoList = [
         "deadline": "2018-09-18T00:00:00",
         "restTime": "\u8fd8\u5269 0 \u5929 1 \u5c0f\u65f6 21 \u5206\u949f",
         "priority": 1,
-        "status": 0,
+        "status": 2,
         "url": "http://127.0.0.1:8005/api/todoList/1b3d623f-3012-4edf-9f1c-ac7bdd6586eb/"
     },
     {
@@ -156,15 +157,17 @@ class App extends Component {
                 </div>
                 <div className="col-lg-9 ml-auto mr-auto">
                     {this.state.todoList.map((item) => {
+
                         let color = cardColor[item.priority].toString();
+                        if (item.status === 2) color = "rgba-black-light"
                         return (
                             <div className="card mb-lg-3">
                                 <div
                                     className={"card-header lighten-1 white-text " + color}>{item.description}</div>
                                 <div className="card-body">
-                                    <h4 className="card-title">Special title treatment</h4>
-                                    <p className="card-text">{item.deadline}</p>
-                                    <p className="card-text">{item.restTime}</p>
+                                    <p className="card-text">{"截止日期：" + item.deadline}</p>
+                                    <p className="card-text">{"剩余时间：" + item.restTime}</p>
+                                    <p className="card-text">{"当前状态：" + statusList[item.status] + (item.status === 1 ? "√" : "")}</p>
                                     <button onClick={() => this.deleteTask(item.url)} type="button"
                                             className={"btn btn-sm " + color}>
                                         删除
