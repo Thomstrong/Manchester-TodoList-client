@@ -40,7 +40,7 @@ class App extends Component {
         }
         else {
             this.setState((prevState) => ({
-                    todoList: prevState.todoList.filter(item => item.description.includes(keyword))
+                    todoList: todoList.filter(item => item.description.includes(keyword))
                 })
             );
         }
