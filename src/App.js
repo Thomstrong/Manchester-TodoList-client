@@ -2,57 +2,26 @@ import React, {Component} from 'react';
 import {Input} from "mdbreact"
 import NewTaskForm from "./Components/NewTaskForm";
 import axios from 'axios';
+
 const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
 const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
 const statusList = ["待完成", "已完成", "已放弃"]
-const todoList = [
-    {
-        "id": "ef432037-5e41-4cca-8875-1441ec61cbe6",
-        "description": "\u521b\u5efa\u6846\u67b6",
-        "deadline": "2018-09-16T13:00:00",
-        "restTime": "\u903e\u671f 2 \u5929 9 \u5c0f\u65f6 39 \u5206\u949f",
-        "priority": 0,
-        "status": 1,
-        "url": "http://127.0.0.1:8005/api/todoList/ef432037-5e41-4cca-8875-1441ec61cbe6/"
-    },
-    {
-        "id": "1b3d623f-3012-4edf-9f1c-ac7bdd6586eb",
-        "description": "\u521b\u5efa\u6846\u67b6",
-        "deadline": "2018-09-18T00:00:00",
-        "restTime": "\u8fd8\u5269 0 \u5929 1 \u5c0f\u65f6 21 \u5206\u949f",
-        "priority": 1,
-        "status": 2,
-        "url": "http://127.0.0.1:8005/api/todoList/1b3d623f-3012-4edf-9f1c-ac7bdd6586eb/"
-    },
-    {
-        "id": "9e264176-f313-47e0-a0d8-fc48657ed20c",
-        "description": "\u524d\u540e\u7aef\u8054\u8c03",
-        "deadline": "2018-09-17T00:00:00",
-        "restTime": "\u903e\u671f 1 \u5929 22 \u5c0f\u65f6 39 \u5206\u949f",
-        "priority": 2,
-        "status": 0,
-        "url": "http://127.0.0.1:8005/api/todoList/9e264176-f313-47e0-a0d8-fc48657ed20c/"
-    },
-    {
-        "id": "2aa264b5-bb31-4d63-a5d6-7facad0f7494",
-        "description": "\u524d\u540e\u7aef\u8054\u8c03\u5b8c\u6210",
-        "deadline": "2018-09-24T00:00:00",
-        "restTime": "\u8fd8\u5269 6 \u5929 1 \u5c0f\u65f6 21 \u5206\u949f",
-        "priority": 3,
-        "status": 0,
-        "url": "http://127.0.0.1:8005/api/todoList/2aa264b5-bb31-4d63-a5d6-7facad0f7494/"
-    }
-];
+const url = "http://127.0.0.1:8000/api/todoList";
+let todoList = [];
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            todoList: todoList,
+            todoList: [],
             newDialog: false,
             modifyDialog: false,
             searchKeyWord: "",
         };
+        axios.get(`${url}/`).then(res => {
+            todoList = res.data;
+            this.setState({todoList: res.data});
+        })
 
     }
 
@@ -91,17 +60,40 @@ class App extends Component {
         })
     };
 
-    handleStatusChange = (url, staus) => {
-
+    handleStatusChange = (item, status) => {
+        axios.post(`${url}/${item.id}/SetStatus/`, {"status": status}).then(res => {
+            todoList[todoList.indexOf(item)].status = status;
+            this.setState({
+                todoList: todoList
+            })
+        })
     }
 
     handleFormData = (formData, method) => {
         console.log(formData);
         let deadline = formData.deadline.format("YYYY-MM-DD hh:mm:ss");
         console.log(deadline);
+        let data = {
+            "description": formData.description,
+            "deadline": formData.deadline.format("YYYY-MM-DD hh:mm:ss"),
+            "priority": formData.priority,
+            "status": 0
+        }
         if (method === "POST") {
+            axios.post(`${url}/`, data).then(res => {
+                todoList.unshift(res.data);
+                this.setState({
+                    todoList: todoList
+                })
+            });
             this.toggle("new")
         } else {
+            axios.put(`${url}/${formData.id}/`, data).then(res => {
+                todoList[todoList.indexOf(this.state.updateData)] = res.data;
+                this.setState({
+                    todoList: todoList
+                })
+            });
             this.toggle("modify")
         }
     };
@@ -113,12 +105,15 @@ class App extends Component {
     };
 
 
-    deleteTask = (url) => {
-        //Todo delete in database
-        this.setState((prevState) => ({
-                todoList: prevState.todoList.filter(item => item.url !== url)
-            })
-        );
+    deleteTask = (item) => {
+        axios.delete(item.url).then((res) => {
+            todoList = todoList.filter(_ => _.url !== item.url);
+            this.setState((prevState) => ({
+                    todoList: todoList
+                })
+            );
+        })
+
     };
 
     handleSearchKeyPress = (event) => {
@@ -167,7 +162,7 @@ class App extends Component {
                 <div className="col-lg-9 ml-auto mr-auto">
                     {this.state.todoList.map((item) => {
 
-                        let color = cardColor[item.priority].toString();
+                        let color = cardColor[item.priority];
                         if (item.status === 2) color = "rgba-black-light"
                         return (
                             <div className="card mb-lg-3">
@@ -181,23 +176,23 @@ class App extends Component {
                                     <p className="card-text">{"截止日期：" + item.deadline}</p>
                                     <p className="card-text">{"剩余时间：" + item.restTime}</p>
                                     <p className="card-text">{"当前状态：" + statusList[item.status] + (item.status === 1 ? "√" : "")}</p>
-                                    <button onClick={() => this.deleteTask(item.url)} type="button"
+                                    <button onClick={() => this.deleteTask(item)} type="button"
                                             className={"btn btn-sm " + color}>
                                         删除
-                                    </button>
-                                    <button onClick={() => this.handleUpdateTask(item)} type="button"
-                                            className={"btn btn-sm " + color}>
-                                        修改
                                     </button>
                                     {
                                         item.status === 0 ?
                                             (<div className="custom-control-inline">
-                                                    <button onClick={() => this.handleStatusChange(item.url, 1)}
+                                                    <button onClick={() => this.handleUpdateTask(item)} type="button"
+                                                            className={"btn btn-sm " + color}>
+                                                        修改
+                                                    </button>
+                                                    <button onClick={() => this.handleStatusChange(item, 1)}
                                                             type="button"
                                                             className={"btn btn-sm " + color}>
                                                         完成
                                                     </button>
-                                                    <button onClick={() => this.handleStatusChange(item.url, 2)}
+                                                    <button onClick={() => this.handleStatusChange(item, 2)}
                                                             type="button"
                                                             className={"btn btn-sm " + color}>
                                                         放弃
@@ -206,11 +201,11 @@ class App extends Component {
                                             ) : ""
                                     }
                                     {
-                                        item.status === 2?<button onClick={() => this.handleStatusChange(item.url, 0)}
-                                                                  type="button"
-                                                                  className={"btn btn-sm " + color}>
+                                        item.status === 2 ? <button onClick={() => this.handleStatusChange(item, 0)}
+                                                                    type="button"
+                                                                    className={"btn btn-sm " + color}>
                                             重新开始
-                                        </button>:""
+                                        </button> : ""
                                     }
 
 

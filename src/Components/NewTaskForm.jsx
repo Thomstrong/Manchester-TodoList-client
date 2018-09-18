@@ -3,7 +3,7 @@ import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {Input} from "mdbreact"
 import "react-datetime/css/react-datetime.css"
 import Datetime from "react-datetime"
-import axios from 'axios';
+
 const priorities = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"];
 const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"];
 
@@ -25,12 +25,14 @@ class NewTaskForm extends Component {
 
     handleSubmit = (event) => {
         const retData = this.state;
+        if (this.props.param) retData.id = this.props.param.id
         if (this.state.description.length === 0) {
             retData.description = this.props.param ? this.props.param.description : "";
         }
         if (retData.deadline.length === 0 || retData.description.length === 0) {
             alert("信息填写不完整")
         } else {
+
             this.props.handleSubmit(retData);
         }
         event.preventDefault();
