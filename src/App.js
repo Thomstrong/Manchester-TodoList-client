@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Input} from "mdbreact"
 import NewTaskForm from "./Components/NewTaskForm";
-
+import axios from 'axios';
 const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
 const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
 const statusList = ["待完成", "已完成", "已放弃"]
@@ -90,6 +90,10 @@ class App extends Component {
             updateData: item
         })
     };
+
+    handleStatusChange = (url, staus) => {
+
+    }
 
     handleFormData = (formData, method) => {
         console.log(formData);
@@ -185,6 +189,31 @@ class App extends Component {
                                             className={"btn btn-sm " + color}>
                                         修改
                                     </button>
+                                    {
+                                        item.status === 0 ?
+                                            (<div className="custom-control-inline">
+                                                    <button onClick={() => this.handleStatusChange(item.url, 1)}
+                                                            type="button"
+                                                            className={"btn btn-sm " + color}>
+                                                        完成
+                                                    </button>
+                                                    <button onClick={() => this.handleStatusChange(item.url, 2)}
+                                                            type="button"
+                                                            className={"btn btn-sm " + color}>
+                                                        放弃
+                                                    </button>
+                                                </div>
+                                            ) : ""
+                                    }
+                                    {
+                                        item.status === 2?<button onClick={() => this.handleStatusChange(item.url, 0)}
+                                                                  type="button"
+                                                                  className={"btn btn-sm " + color}>
+                                            重新开始
+                                        </button>:""
+                                    }
+
+
                                 </div>
                             </div>
                         )

@@ -3,9 +3,9 @@ import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {Input} from "mdbreact"
 import "react-datetime/css/react-datetime.css"
 import Datetime from "react-datetime"
-
+import axios from 'axios';
 const priorities = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"];
-const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
+const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"];
 
 class NewTaskForm extends Component {
     constructor(props) {
@@ -34,14 +34,14 @@ class NewTaskForm extends Component {
             this.props.handleSubmit(retData);
         }
         event.preventDefault();
-    }
+    };
 
     consumeInput = (props) => {
         return (
             <Input onKeyPress={(event) => event.preventDefault()} label="截止日期" {...props}
                    onChange={(event) => props.onChange(event.target.value)}/>
         );
-    }
+    };
 
     selectItem = (event) => {
         const value = event.target.value;
@@ -50,10 +50,10 @@ class NewTaskForm extends Component {
         this.setState({
             priority: value,
             label: label
-        })
-        this.toggleOpen()
+        });
+        this.toggleOpen();
         event.preventDefault();
-    }
+    };
 
     render() {
         return (
