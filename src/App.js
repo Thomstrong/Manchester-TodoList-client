@@ -3,6 +3,7 @@ import {Input} from "mdbreact"
 import NewTaskForm from "./Components/NewTaskForm";
 
 const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
+const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
 const statusList = ["待完成", "已完成", "已放弃"]
 const todoList = [
     {
@@ -49,8 +50,8 @@ class App extends Component {
         this.state = {
             todoList: todoList,
             newDialog: false,
-            modifyDialog: false
-
+            modifyDialog: false,
+            searchKeyWord: "",
         };
 
     }
@@ -76,16 +77,19 @@ class App extends Component {
         }
 
     };
+
     handleNewTask = () => {
         this.setState({
             newDialog: !this.state.newDialog
         })
-    }
-    handleUpdateTask = (url) => {
+    };
+
+    handleUpdateTask = (item) => {
         this.setState({
-            modifyDialog: !this.state.modifyDialog
+            modifyDialog: !this.state.modifyDialog,
+            updateData: item
         })
-    }
+    };
 
     handleFormData = (formData, method) => {
         console.log(formData);
@@ -132,14 +136,15 @@ class App extends Component {
                                  handleSubmit={(data) => this.handleFormData(data, "POST")}/>
                 </div>
                 <div className="row">
-                    <NewTaskForm onClose={() => this.toggle("modify")} title={"修改待办事项"} show={this.state.modifyDialog}
+                    <NewTaskForm param={this.state.updateData} onClose={() => this.toggle("modify")} title={"修改待办事项"}
+                                 show={this.state.modifyDialog}
                                  handleSubmit={(data) => this.handleFormData(data, "PUT")}/>
                 </div>
                 <div className="col-lg-9 ml-auto mr-auto">
                     <div className="row position-relative w-auto justify-content-md-center">
                         <form className="custom-control-inline justify-content-center" onSubmit={this.handleSearch}>
                             <div className="col-lg-12 mt-auto mb-auto">
-                                <Input label="查询待办事项" onKeyPress={this.handleSearchKeyPress}
+                                <Input className="ds-input" label="查询待办事项" onKeyPress={this.handleSearchKeyPress}
                                        onChange={this.handleChange}/>
                             </div>
                             <div className="col-lg-4 mt-auto mb-auto">
@@ -162,8 +167,12 @@ class App extends Component {
                         if (item.status === 2) color = "rgba-black-light"
                         return (
                             <div className="card mb-lg-3">
-                                <div
-                                    className={"card-header lighten-1 white-text " + color}>{item.description}</div>
+                                <div className={"card-header lighten-1 white-text " + color}>
+                                    <p className="mb-auto">
+                                        {item.description}
+                                    </p>
+                                    <span className="badge custom-control-inline">{priorityStr[item.priority]}</span>
+                                </div>
                                 <div className="card-body">
                                     <p className="card-text">{"截止日期：" + item.deadline}</p>
                                     <p className="card-text">{"剩余时间：" + item.restTime}</p>
@@ -172,7 +181,7 @@ class App extends Component {
                                             className={"btn btn-sm " + color}>
                                         删除
                                     </button>
-                                    <button onClick={() => this.handleUpdateTask(item.url)} type="button"
+                                    <button onClick={() => this.handleUpdateTask(item)} type="button"
                                             className={"btn btn-sm " + color}>
                                         修改
                                     </button>
