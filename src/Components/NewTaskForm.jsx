@@ -5,7 +5,7 @@ import "react-datetime/css/react-datetime.css"
 import Datetime from "react-datetime"
 
 const priorities = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"];
-const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"];
+const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"];
 
 class NewTaskForm extends Component {
     constructor(props) {

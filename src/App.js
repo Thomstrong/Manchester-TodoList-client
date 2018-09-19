@@ -3,7 +3,7 @@ import {Input} from "mdbreact"
 import NewTaskForm from "./Components/NewTaskForm";
 import axios from 'axios';
 
-const cardColor = ["success-color", "primary-color", "warning-color", "danger-color"]
+const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"]
 const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
 const statusList = ["待完成", "已完成", "已放弃"]
 const url = "http://127.0.0.1:8000/api/todoList";
@@ -201,14 +201,12 @@ class App extends Component {
                                             ) : ""
                                     }
                                     {
-                                        item.status === 2 ? <button onClick={() => this.handleStatusChange(item, 0)}
+                                        item.status === 2 ? <button onClick={() => this.handleUpdateTask(item)}
                                                                     type="button"
                                                                     className={"btn btn-sm " + color}>
                                             重新开始
                                         </button> : ""
                                     }
-
-
                                 </div>
                             </div>
                         )
