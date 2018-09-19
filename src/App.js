@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import {Input} from "mdbreact"
+import {Input} from "mdbreact";
 import NewTaskForm from "./Components/NewTaskForm";
+
 import axios from 'axios';
 
 const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"]
@@ -11,6 +12,7 @@ const sortValue = ["deadline", "-deadline", "priority", "-priority"]
 const url = "http://127.0.0.1:8000/api/todoList";
 let todoList = [];
 
+
 class App extends Component {
     constructor(props) {
         super(props);
@@ -20,7 +22,8 @@ class App extends Component {
             modifyDialog: false,
             searchKeyWord: "",
             isOpen: false,
-            sortMethod: "请选择排序依据"
+            sortMethod: "请选择排序依据",
+            unfinishOnly:false,
         };
         axios.get(`${url}/`).then(res => {
             todoList = res.data;
@@ -157,6 +160,7 @@ class App extends Component {
                                  show={this.state.modifyDialog}
                                  handleSubmit={(data) => this.handleFormData(data, "PUT")}/>
                 </div>
+
                 <div className="col-lg-9 ml-auto mr-auto">
                     <div className="row position-relative justify-content-md-center">
                         <form className="custom-control-inline justify-content-center" onSubmit={this.handleSearch}>
@@ -165,7 +169,7 @@ class App extends Component {
                                        onChange={this.handleChange}/>
                             </div>
                             <div className="col-auto mr-auto mt-auto mb-auto">
-                                <button type="submit" className={"btn btn-danger btn-sm"}>
+                                <button type="submit" className="btn waves-effect btn-danger btn-sm">
                                     查询
                                 </button>
                             </div>
@@ -174,7 +178,7 @@ class App extends Component {
                                     新建
                                 </button>
                             </div>
-                            <div className="col-auto mt-auto mr-auto mb-auto">
+                            <div className="col-sm-auto mt-auto mr-auto mb-auto">
                                 <div className="dropdown">
                                     <button
                                         className={`btn dropdown-toggle btn-danger btn-sm`}
@@ -202,11 +206,25 @@ class App extends Component {
                         </form>
                     </div>
                 </div>
+                <div class="col-9 form-inline ml-auto mr-auto">
+                    <div className="col-auto form-inline ml-0 mr-auto">
+                        <input className="form-check-input" type="checkbox" id="inlineFormCheckbox1" checked={this.state.unfinishOnly} onClick={()=>this.setState({unfinishOnly:!this.state.unfinishOnly})}/>
+                        <label className="form-check-label" htmlFor="inlineFormCheckbox1">只显示待完成项</label>
+                    </div>
+                    <div className="col-auto ml-auto mr-0">
+                        共有
+                        <div className="badge danger-color">
+                            {todoList.length}
+                        </div>
+                        个待办事项
+                    </div>
+                </div>
+
                 <div className="col-lg-9 ml-auto mr-auto">
                     {this.state.todoList.map((item) => {
 
                         let color = cardColor[item.priority];
-                        if (item.status === 2) color = "rgba-black-light"
+                        if (item.status === 2) color = "rgba-black-light";
                         return (
                             <div className="card mb-lg-4">
                                 <div className={"card-header lighten-1 white-text " + color}>
