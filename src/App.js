@@ -20,7 +20,7 @@ class App extends Component {
             modifyDialog: false,
             searchKeyWord: "",
             isOpen: false,
-            sortMethod:"请选择排序依据"
+            sortMethod: "请选择排序依据"
         };
         axios.get(`${url}/`).then(res => {
             todoList = res.data;
@@ -76,15 +76,12 @@ class App extends Component {
     }
 
     handleFormData = (formData, method) => {
-        console.log(formData);
-        let deadline = formData.deadline.format("YYYY-MM-DD hh:mm:ss");
-        console.log(deadline);
         let data = {
             "description": formData.description,
             "deadline": formData.deadline.format("YYYY-MM-DD hh:mm:ss"),
             "priority": formData.priority,
             "status": 0
-        }
+        };
         if (method === "POST") {
             axios.post(`${url}/`, data).then(res => {
                 todoList.unshift(res.data);
@@ -133,7 +130,7 @@ class App extends Component {
         console.log("change to " + event.target.value)
     };
 
-    selectItem = (event) => {
+    selectSortingItem = (event) => {
         const value = event.target.value;
         const label = event.target.label;
         let sortMethod = sortValue[value];
@@ -194,7 +191,7 @@ class App extends Component {
                                         {sortMethod.map((item, index) => {
                                             return (
                                                 <option value={index} className="dropdown-item"
-                                                        onClick={this.selectItem}>
+                                                        onClick={this.selectSortingItem}>
                                                     {item}
                                                 </option>
                                             )
