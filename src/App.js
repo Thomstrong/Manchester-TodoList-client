@@ -6,6 +6,8 @@ import axios from 'axios';
 const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"]
 const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
 const statusList = ["待完成", "已完成", "已放弃"]
+const sortMethod = ["按截止日期升序", "按截止日期降序", "按优先级升序", "按优先级降序"];
+const sortValue = ["deadline", "-deadline", "priority", "-priority"]
 const url = "http://127.0.0.1:8000/api/todoList";
 let todoList = [];
 
@@ -17,6 +19,8 @@ class App extends Component {
             newDialog: false,
             modifyDialog: false,
             searchKeyWord: "",
+            isOpen: false,
+            sortMethod:"请选择排序依据"
         };
         axios.get(`${url}/`).then(res => {
             todoList = res.data;
@@ -24,6 +28,8 @@ class App extends Component {
         })
 
     }
+
+    toggleOpen = () => this.setState({isOpen: !this.state.isOpen});
 
     filterByKeyword = (keyword) => {
         if (keyword === undefined || keyword.length === 0) {
@@ -127,6 +133,21 @@ class App extends Component {
         console.log("change to " + event.target.value)
     };
 
+    selectItem = (event) => {
+        const value = event.target.value;
+        const label = event.target.label;
+        let sortMethod = sortValue[value];
+        axios.get(`${url}?sorting=${sortMethod}`).then(res => {
+            todoList = res.data;
+            this.setState({
+                todoList: res.data,
+                sortMethod: label,
+            });
+        });
+        this.toggleOpen();
+        event.preventDefault();
+    };
+
     render() {
         return (
             <div className="container">
@@ -140,21 +161,46 @@ class App extends Component {
                                  handleSubmit={(data) => this.handleFormData(data, "PUT")}/>
                 </div>
                 <div className="col-lg-9 ml-auto mr-auto">
-                    <div className="row position-relative w-auto justify-content-md-center">
+                    <div className="row position-relative justify-content-md-center">
                         <form className="custom-control-inline justify-content-center" onSubmit={this.handleSearch}>
-                            <div className="col-lg-12 mt-auto mb-auto">
+                            <div className="col-7 mt-auto mb-auto">
                                 <Input className="ds-input" label="查询待办事项" onKeyPress={this.handleSearchKeyPress}
                                        onChange={this.handleChange}/>
                             </div>
-                            <div className="col-lg-4 mt-auto mb-auto">
+                            <div className="col-auto mr-auto mt-auto mb-auto">
                                 <button type="submit" className={"btn btn-danger btn-sm"}>
                                     查询
                                 </button>
                             </div>
-                            <div className="col-lg-4 mt-auto mb-auto">
+                            <div className="col-auto w-auto mr-auto mt-auto mb-auto">
                                 <button type="button" onClick={this.handleNewTask} className={"btn btn-danger btn-sm"}>
                                     新建
                                 </button>
+                            </div>
+                            <div className="col-auto mt-auto mr-auto mb-auto">
+                                <div className="dropdown">
+                                    <button
+                                        className={`btn dropdown-toggle btn-danger btn-sm`}
+                                        type="button"
+                                        id="dropdownMenuButton"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        onClick={this.toggleOpen}
+                                    >
+                                        {this.state.sortMethod}
+                                    </button>
+                                    <div className={`dropdown-menu${this.state.isOpen ? " show" : ""}`}
+                                         aria-labelledby="dropdownMenuButton">
+                                        {sortMethod.map((item, index) => {
+                                            return (
+                                                <option value={index} className="dropdown-item"
+                                                        onClick={this.selectItem}>
+                                                    {item}
+                                                </option>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -165,12 +211,14 @@ class App extends Component {
                         let color = cardColor[item.priority];
                         if (item.status === 2) color = "rgba-black-light"
                         return (
-                            <div className="card mb-lg-3">
+                            <div className="card mb-lg-4">
                                 <div className={"card-header lighten-1 white-text " + color}>
                                     <p className="mb-auto">
                                         {item.description}
                                     </p>
-                                    <span className="badge custom-control-inline">{priorityStr[item.priority]}</span>
+                                    <span className="badge custom-control-inline">
+                                        {item.status === 2 ? "已放弃" : priorityStr[item.priority]}
+                                        </span>
                                 </div>
                                 <div className="card-body">
                                     <p className="card-text">{"截止日期：" + item.deadline}</p>
