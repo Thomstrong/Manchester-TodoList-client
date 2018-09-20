@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Input} from "mdbreact";
 import NewTaskForm from "./Components/NewTaskForm";
-
+import Moment from "moment";
 import axios from 'axios';
 
 import {cardColor, priorityStr, sortMethod, sortValue, statusList, url} from "./config"
@@ -23,21 +23,12 @@ class App extends Component {
         };
         axios.get(`${url}/`).then(res => {
             todoList = res.data;
-            this.setState({todoList: res.data});
+            this.setNewTodoList();
         })
 
     }
 
     toggleOpen = () => this.setState({isOpen: !this.state.isOpen});
-
-    filterByKeyword = (keyword) => {
-        if (keyword === undefined || keyword.length === 0) {
-            this.setState({todoList: todoList});
-        }
-        else {
-            this.setState({todoList: todoList.filter(item => item.description.includes(keyword))});
-        }
-    };
 
     toggle = (type) => {
         if (type === "new") {
@@ -58,51 +49,53 @@ class App extends Component {
         })
     };
 
+
     handleUpdateTask = (item) => {
+        let newData = JSON.parse(JSON.stringify(item));
+        newData.deadline = newData.hasOwnProperty("deadline") ? new Moment(item.deadline) : item.deadline;
         this.setState({
-            modifyDialog: !this.state.modifyDialog,
-            updateData: item
-        })
+            updateData: newData
+        }, () => this.setState({modifyDialog: !this.state.modifyDialog,}))
     };
 
     handleStatusChange = (item, status) => {
         axios.post(`${url}/${item.id}/SetStatus/`, {"status": status}).then(res => {
             todoList[todoList.indexOf(item)].status = status;
-            this.setState({
-                todoList: todoList
-            })
+            this.setNewTodoList();
         })
-    }
+    };
 
     handleFormData = (formData, method) => {
         let data = {
             "description": formData.description,
-            "deadline": formData.deadline.format("YYYY-MM-DD hh:mm:ss"),
+            "deadline": formData.deadline.format("YYYY-MM-DD HH:mm:ss"),
             "priority": formData.priority,
             "status": 0
         };
         if (method === "POST") {
             axios.post(`${url}/`, data).then(res => {
                 todoList.unshift(res.data);
-                this.setState({
-                    todoList: todoList
-                })
+                this.setNewTodoList();
             });
             this.toggle("new")
         } else {
             axios.put(`${url}/${formData.id}/`, data).then(res => {
-                todoList[todoList.indexOf(this.state.updateData)] = res.data;
-                this.setState({
-                    todoList: todoList
-                })
+                console.log(this.state.updateData)
+                todoList.forEach(t => {
+                    if (t.id === this.state.updateData.id) {
+                        todoList[todoList.indexOf(t)] = res.data;
+                    }
+                });
+
+                this.setState({updateData: undefined});
+                this.setNewTodoList();
             });
             this.toggle("modify")
         }
     };
 
     handleSearch = (event) => {
-        const keyword = this.state.searchKeyWord;
-        this.filterByKeyword(keyword);
+        this.setNewTodoList();
         event.preventDefault();
     };
 
@@ -110,17 +103,30 @@ class App extends Component {
     deleteTask = (item) => {
         axios.delete(item.url).then((res) => {
             todoList = todoList.filter(_ => _.url !== item.url);
-            this.setState((prevState) => ({
-                    todoList: todoList
-                })
-            );
+            this.setNewTodoList();
         })
 
     };
 
+    setNewTodoList = () => {
+        let showData = todoList;
+        if (this.state.unfinishOnly) {
+            showData = showData.filter(t => t.status === 0)
+        }
+        if (this.state.searchKeyWord && this.state.searchKeyWord.length > 0) {
+            showData = showData.filter(item => item.description.includes(this.state.searchKeyWord))
+        }
+        this.setState({
+            todoList: showData
+        });
+    };
+
     handleSearchKeyPress = (event) => {
         if (event.key === "Enter") {
-            this.filterByKeyword(event.target.value)
+            this.setState({
+                searchKeyWord: event.target.value
+            });
+            this.setNewTodoList();
         }
     };
 
@@ -136,9 +142,8 @@ class App extends Component {
         axios.get(`${url}?sorting=${sortMethod}`).then(res => {
             todoList = res.data;
             this.setState({
-                todoList: this.state.unfinishOnly ? todoList.filter(t => t.status === 0) : todoList,
                 sortMethod: label,
-            });
+            }, this.setNewTodoList);
         });
         this.toggleOpen();
         event.preventDefault();
@@ -147,16 +152,15 @@ class App extends Component {
     handleCheck = (event) => {
         if (this.state.unfinishOnly) {
             this.setState({
-                todoList: todoList,
                 unfinishOnly: false
-            })
+            }, this.setNewTodoList)
+
         } else {
             this.setState({
-                todoList: todoList.filter(t => t.status === 0),
                 unfinishOnly: true
-            })
+            }, this.setNewTodoList)
         }
-    }
+    };
 
     render() {
         return (
@@ -204,7 +208,7 @@ class App extends Component {
                                          aria-labelledby="dropdownMenuButton">
                                         {sortMethod.map((item, index) => {
                                             return (
-                                                <option value={index} className="dropdown-item"
+                                                <option key={index} value={index} className="dropdown-item"
                                                         onClick={this.selectSortingItem}>
                                                     {item}
                                                 </option>
@@ -216,11 +220,11 @@ class App extends Component {
                         </form>
                     </div>
                 </div>
-                <div class="col-9 form-inline ml-auto mr-auto">
+                <div className="col-9 form-inline ml-auto mr-auto">
                     <div className="col-auto form-inline ml-0 mr-auto">
                         <input className="form-check-input" type="checkbox" id="inlineFormCheckbox1"
                                checked={this.state.unfinishOnly}
-                               onClick={this.handleCheck}/>
+                               onChange={this.handleCheck}/>
                         <label className="form-check-label" htmlFor="inlineFormCheckbox1">只显示待完成项</label>
                     </div>
                     <div className="col-auto ml-auto mr-0">
@@ -238,7 +242,7 @@ class App extends Component {
                         let color = cardColor[item.priority];
                         if (item.status === 2) color = "rgba-black-light";
                         return (
-                            <div className="card mb-lg-4">
+                            <div key={item.id} className="card mb-lg-4">
                                 <div className={"card-header lighten-1 white-text " + color}>
                                     <p className="mb-auto ">
                                         {item.status === 1 ?
@@ -250,12 +254,12 @@ class App extends Component {
                                         </span>
                                 </div>
                                 <div className="card-body">
-                                    <p className="card-text">{"截止日期：" + item.deadline}</p>
+                                    <p className="card-text">{"截止时间：" + item.deadline}</p>
                                     <p className="card-text">{"剩余时间：" + item.restTime}</p>
                                     <p className="card-text">{"当前状态：" + statusList[item.status] + (item.status === 1 ? "√" : "")}</p>
                                     <button onClick={() => this.deleteTask(item)} type="button"
                                             className={"btn btn-sm " + color}>
-                                        删除
+                                        <p className="mb-auto">删除</p>
                                     </button>
                                     {
                                         item.status === 0 ?

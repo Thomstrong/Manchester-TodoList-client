@@ -3,7 +3,7 @@ import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {Input} from "mdbreact"
 import "react-datetime/css/react-datetime.css"
 import Datetime from "react-datetime"
-import {priorityStr, cardColor} from "../config";
+import {cardColor, priorityStr} from "../config";
 
 class NewTaskForm extends Component {
     constructor(props) {
@@ -19,18 +19,29 @@ class NewTaskForm extends Component {
         };
     }
 
+    componentWillReceiveProps(nextProps, context) {
+        console.log("componentWillReceiveProps");
+        if (nextProps.param) {
+            this.setState(nextProps.param)
+        } else {
+            this.setState({
+                modal: false,
+                isOpen: false,
+                description: "",
+                deadline: "",
+                priority: 0,
+                status: 0,
+            })
+        }
+    }
+
     toggleOpen = () => this.setState({isOpen: !this.state.isOpen});
 
     handleSubmit = (event) => {
         const retData = this.state;
-        if (this.props.param) retData.id = this.props.param.id
-        if (this.state.description.length === 0) {
-            retData.description = this.props.param ? this.props.param.description : "";
-        }
         if (retData.deadline.length === 0 || retData.description.length === 0) {
             alert("信息填写不完整")
         } else {
-
             this.props.handleSubmit(retData);
         }
         event.preventDefault();
@@ -78,7 +89,7 @@ class NewTaskForm extends Component {
                             <div className="form-group col-lg-12">
                                 <Datetime renderInput={this.consumeInput}
                                           onChange={(value) => this.setState({deadline: value})}
-                                          default={this.props.param ? this.props.param.deadline : ""}
+                                          value={this.state.deadline}
                                 />
                             </div>
                         </div>
@@ -100,7 +111,7 @@ class NewTaskForm extends Component {
                                          aria-labelledby="dropdownMenuButton">
                                         {priorityStr.map((item, index) => {
                                             return (
-                                                <option value={index} className="dropdown-item"
+                                                <option key={index} value={index} className="dropdown-item"
                                                         onClick={this.selectItem}>
                                                     {item}
                                                 </option>
