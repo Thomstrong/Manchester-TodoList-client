@@ -14,6 +14,7 @@ class App extends Component {
         super(props);
         this.state = {
             todoList: [],
+            modalTitle: "",
             newDialog: false,
             modifyDialog: false,
             searchKeyWord: "",
@@ -45,16 +46,18 @@ class App extends Component {
 
     handleNewTask = () => {
         this.setState({
+            modalTitle: "新建待办事项",
             newDialog: !this.state.newDialog
         })
     };
 
 
-    handleUpdateTask = (item) => {
+    handleUpdateTask = (item, title) => {
         let newData = JSON.parse(JSON.stringify(item));
         newData.deadline = newData.hasOwnProperty("deadline") ? new Moment(item.deadline) : item.deadline;
         this.setState({
-            updateData: newData
+            updateData: newData,
+            modalTitle: title
         }, () => this.setState({modifyDialog: !this.state.modifyDialog,}))
     };
 
@@ -166,11 +169,13 @@ class App extends Component {
         return (
             <div className="container">
                 <div className="row">
-                    <NewTaskForm onClose={() => this.toggle("new")} title={"新建待办事项"} show={this.state.newDialog}
+                    <NewTaskForm onClose={() => this.toggle("new")} title={this.state.modalTitle}
+                                 show={this.state.newDialog}
                                  handleSubmit={(data) => this.handleFormData(data, "POST")}/>
                 </div>
                 <div className="row">
-                    <NewTaskForm param={this.state.updateData} onClose={() => this.toggle("modify")} title={"修改待办事项"}
+                    <NewTaskForm param={this.state.updateData} onClose={() => this.toggle("modify")}
+                                 title={this.state.modalTitle}
                                  show={this.state.modifyDialog}
                                  handleSubmit={(data) => this.handleFormData(data, "PUT")}/>
                 </div>
@@ -264,7 +269,8 @@ class App extends Component {
                                     {
                                         item.status === 0 ?
                                             (<div className="custom-control-inline">
-                                                    <button onClick={() => this.handleUpdateTask(item)} type="button"
+                                                    <button onClick={() => this.handleUpdateTask(item, "修改待办事项")}
+                                                            type="button"
                                                             className={"btn btn-sm " + color}>
                                                         修改
                                                     </button>
@@ -282,11 +288,12 @@ class App extends Component {
                                             ) : ""
                                     }
                                     {
-                                        item.status === 2 ? <button onClick={() => this.handleUpdateTask(item)}
-                                                                    type="button"
-                                                                    className={"btn btn-sm " + color}>
-                                            重新开始
-                                        </button> : ""
+                                        item.status === 2 ?
+                                            <button onClick={() => this.handleUpdateTask(item, "重启待办事项")}
+                                                    type="button"
+                                                    className={"btn btn-sm " + color}>
+                                                重新开始
+                                            </button> : ""
                                     }
                                 </div>
                             </div>
@@ -294,6 +301,8 @@ class App extends Component {
                     })}
                 </div>
             </div>
+
+            < /div>
         );
     }
 }
