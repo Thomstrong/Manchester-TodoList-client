@@ -3,9 +3,7 @@ import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {Input} from "mdbreact"
 import "react-datetime/css/react-datetime.css"
 import Datetime from "react-datetime"
-
-const priorities = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"];
-const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"];
+import {priorityStr, cardColor} from "../config";
 
 class NewTaskForm extends Component {
     constructor(props) {
@@ -96,11 +94,11 @@ class NewTaskForm extends Component {
                                         aria-haspopup="true"
                                         onClick={this.toggleOpen}
                                     >
-                                        {priorities[this.state.priority]}
+                                        {priorityStr[this.state.priority]}
                                     </button>
                                     <div className={`dropdown-menu${this.state.isOpen ? " show" : ""}`}
                                          aria-labelledby="dropdownMenuButton">
-                                        {priorities.map((item, index) => {
+                                        {priorityStr.map((item, index) => {
                                             return (
                                                 <option value={index} className="dropdown-item"
                                                         onClick={this.selectItem}>

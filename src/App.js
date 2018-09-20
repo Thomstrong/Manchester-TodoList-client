@@ -4,12 +4,8 @@ import NewTaskForm from "./Components/NewTaskForm";
 
 import axios from 'axios';
 
-const cardColor = ["primary-color", "secondary-color", "warning-color", "danger-color"]
-const priorityStr = ["不急不急", "还能拖拖", "得抓紧了", "最高生产力"]
-const statusList = ["待完成", "已完成", "已放弃"]
-const sortMethod = ["按截止日期升序", "按截止日期降序", "按优先级升序", "按优先级降序"];
-const sortValue = ["deadline", "-deadline", "priority", "-priority"]
-const url = "http://127.0.0.1:8000/api/todoList";
+import {cardColor, priorityStr, sortMethod, sortValue, statusList, url} from "./config"
+
 let todoList = [];
 
 
@@ -23,7 +19,7 @@ class App extends Component {
             searchKeyWord: "",
             isOpen: false,
             sortMethod: "请选择排序依据",
-            unfinishOnly:false,
+            unfinishOnly: false,
         };
         axios.get(`${url}/`).then(res => {
             todoList = res.data;
@@ -140,13 +136,27 @@ class App extends Component {
         axios.get(`${url}?sorting=${sortMethod}`).then(res => {
             todoList = res.data;
             this.setState({
-                todoList: res.data,
+                todoList: this.state.unfinishOnly ? todoList.filter(t => t.status === 0) : todoList,
                 sortMethod: label,
             });
         });
         this.toggleOpen();
         event.preventDefault();
     };
+
+    handleCheck = (event) => {
+        if (this.state.unfinishOnly) {
+            this.setState({
+                todoList: todoList,
+                unfinishOnly: false
+            })
+        } else {
+            this.setState({
+                todoList: todoList.filter(t => t.status === 0),
+                unfinishOnly: true
+            })
+        }
+    }
 
     render() {
         return (
@@ -178,7 +188,7 @@ class App extends Component {
                                     新建
                                 </button>
                             </div>
-                            <div className="col-sm-auto mt-auto mr-auto mb-auto">
+                            <div className="col-sm-4 mt-auto mr-0 mb-auto">
                                 <div className="dropdown">
                                     <button
                                         className={`btn dropdown-toggle btn-danger btn-sm`}
@@ -208,13 +218,15 @@ class App extends Component {
                 </div>
                 <div class="col-9 form-inline ml-auto mr-auto">
                     <div className="col-auto form-inline ml-0 mr-auto">
-                        <input className="form-check-input" type="checkbox" id="inlineFormCheckbox1" checked={this.state.unfinishOnly} onClick={()=>this.setState({unfinishOnly:!this.state.unfinishOnly})}/>
+                        <input className="form-check-input" type="checkbox" id="inlineFormCheckbox1"
+                               checked={this.state.unfinishOnly}
+                               onClick={this.handleCheck}/>
                         <label className="form-check-label" htmlFor="inlineFormCheckbox1">只显示待完成项</label>
                     </div>
                     <div className="col-auto ml-auto mr-0">
                         共有
                         <div className="badge danger-color">
-                            {todoList.length}
+                            {this.state.todoList.length}
                         </div>
                         个待办事项
                     </div>
@@ -228,8 +240,10 @@ class App extends Component {
                         return (
                             <div className="card mb-lg-4">
                                 <div className={"card-header lighten-1 white-text " + color}>
-                                    <p className="mb-auto">
-                                        {item.description}
+                                    <p className="mb-auto ">
+                                        {item.status === 1 ?
+                                            <s className="text-black-50">{item.description}</s> : item.description}
+
                                     </p>
                                     <span className="badge custom-control-inline">
                                         {item.status === 2 ? "已放弃" : priorityStr[item.priority]}
