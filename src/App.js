@@ -4,7 +4,7 @@ import NewTaskForm from "./Components/NewTaskForm";
 import Moment from "moment";
 import axios from 'axios';
 
-import {cardColor, priorityStr, sortMethod, sortValue, statusList, url} from "./config"
+import {cardColor, page_size, priorityStr, sortMethod, sortValue, statusList, url} from "./config"
 
 let todoList = [];
 
@@ -21,10 +21,14 @@ class App extends Component {
             isOpen: false,
             sortMethod: "请选择排序依据",
             unfinishOnly: false,
+
+            maxPage: 0,
+            currentPage: 1,
+            totalTodo:0,
         };
         axios.get(`${url}/`).then(res => {
-            todoList = res.data;
-            this.setNewTodoList();
+            todoList = res.data.results;
+            this.setNewTodoList()
         })
 
     }
@@ -119,8 +123,13 @@ class App extends Component {
         if (this.state.searchKeyWord && this.state.searchKeyWord.length > 0) {
             showData = showData.filter(item => item.description.includes(this.state.searchKeyWord))
         }
+        let showPageList = showData.slice((this.state.currentPage - 1) * page_size,
+            this.state.currentPage * page_size < todoList.length ? this.state.currentPage * page_size : showData.length);
+        const maxPage = Math.ceil(showData.length / page_size);
         this.setState({
-            todoList: showData
+            totalTodo: showData.length,
+            todoList: showPageList,
+            maxPage: maxPage
         });
     };
 
@@ -143,7 +152,7 @@ class App extends Component {
         const label = event.target.label;
         let sortMethod = sortValue[value];
         axios.get(`${url}?sorting=${sortMethod}`).then(res => {
-            todoList = res.data;
+            todoList = res.data.results;
             this.setState({
                 sortMethod: label,
             }, this.setNewTodoList);
@@ -155,15 +164,24 @@ class App extends Component {
     handleCheck = (event) => {
         if (this.state.unfinishOnly) {
             this.setState({
+                currentPage: 1,
                 unfinishOnly: false
             }, this.setNewTodoList)
 
         } else {
             this.setState({
+                currentPage: 1,
                 unfinishOnly: true
             }, this.setNewTodoList)
         }
     };
+
+    handlePageChange = (event, pageNum) => {
+        this.setState({
+            currentPage: pageNum
+        }, this.setNewTodoList)
+        event.preventDefault();
+    }
 
     render() {
         return (
@@ -237,7 +255,7 @@ class App extends Component {
                         <div className="col-auto ml-auto mr-0">
                             共有
                             <div className="badge danger-color">
-                                {this.state.todoList.length}
+                                {this.state.totalTodo}
                             </div>
                             个待办事项
                         </div>
@@ -303,7 +321,37 @@ class App extends Component {
                         })}
                     </div>
                 </div>
-
+                <div className=" col-lg-9 ml-auto mr-auto">
+                    <ul className="pagination col-auto justify-content-md-center">
+                        <li className="page-item">
+                            <button className="page-link"
+                                    disabled={this.state.currentPage === 1}
+                                    onClick={(event) => this.handlePageChange(event, this.state.currentPage - 1)}>Previous
+                            </button>
+                        </li>
+                        {this.state.maxPage && [...new Array(this.state.maxPage).keys()].map((value, index) => {
+                            let pageNum = index + 1;
+                            let selected = "";
+                            if (pageNum === this.state.currentPage) {
+                                selected = "btn-lg"
+                            }
+                            return (
+                                <li className="page-item">
+                                    <button key={pageNum} className={selected ? selected : "page-link"}
+                                            onClick={(event) => this.handlePageChange(event, pageNum)}>{pageNum}</button>
+                                </li>
+                            )
+                        })}
+                        <li className="page-item">
+                            <button
+                                disabled={this.state.currentPage === this.state.maxPage}
+                                className="page-link "
+                                onClick={(event) => this.handlePageChange(event, this.state.currentPage + 1)}
+                            >Next
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         );
     }
