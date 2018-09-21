@@ -5,3 +5,4 @@ export const sortMethod = ["按截止日期由近到远", "按截止日期由远
 export const sortValue = ["deadline", "-deadline", "priority", "-priority"];
 export const url = "http://localhost:8000/api/todoList";
 // export const url = "http://www.hui95810.com:8000/api/todoList";
+export const page_size = 4
